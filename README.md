@@ -8,6 +8,8 @@ Sito per pianificare armi e armature di **Monster Hunter Tri** (Wii, versione PA
 - **Riepilogo** (`docs/fucina.html`): per ogni mostro, i materiali che servono per tutte le armi e tutte le armature. Le colonne sono Armi, Armature e Totale, ciascuna divisa in LR, HR e LR+HR. Il dettaglio è materiale per materiale, senza spunte.
 - **Armature** (`docs/armature.html`): i 144 set di armatura (628 pezzi), divisi tra spadaccino e artigliere e tra LR e HR. Spunti i pezzi che hai e vedi i materiali mancanti per mostro e per parte. Per ogni set mostra difesa, spazi, rarità e abilità.
 
+- **Il mio set** (`docs/mio-set.html`): scegli liberamente armi e pezzi d'armatura e ottieni il totale dei materiali da raccogliere, per mostro e rank. Le armi seguono il percorso più breve. Se vuoi, parte dalle armi che hai spuntato nell'albero e salta i pezzi spuntati in Armature. Per i pezzi d'armatura scelti mostra difesa, spazi e somma delle abilità.
+
 Lingue: italiano, inglese, spagnolo, francese e tedesco, con i nomi ufficiali della versione europea.
 
 Le pagine sono statiche e autonome: dati, stili e codice sono dentro ciascun file HTML. Le spunte restano salvate nel browser di chi le usa.
