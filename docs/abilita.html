@@ -479,6 +479,7 @@ const ACN=i=>(D.actn[GL()]||D.actn.en)[i]||'?';
 const POS=D.acts.filter(a=>a[1]>0);                       // [albero, soglia, abilita']
 let S={want:[],cls:'b',sex:'m',rk:'HR',ws:0,ts:0,tk1:0,tp1:0,tk2:0,tp2:0,onlyOwn:false,ownJ:true,sort:'mat'};
 try{const s=JSON.parse(localStorage.getItem('abilita-tri')||'null');if(s)S=Object.assign(S,s)}catch(e){}
+{const seen=new Map();for(const w of S.want)seen.set(w[0],w);S.want=[...seen.values()]}   // una sola soglia per albero di abilita'
 const save=()=>{try{localStorage.setItem('abilita-tri',JSON.stringify(S))}catch(e){}};
 function owned(key){try{return (JSON.parse(localStorage.getItem(key)||'{}').own)||{}}catch(e){return {}}}
 // ---- metriche di costo di una ricetta
@@ -654,7 +655,9 @@ document.addEventListener('click',e=>{
   }
 });
 document.addEventListener('change',e=>{const x=e.target;
-  if(x.id==='addskill'&&x.value){const [tr,thr]=x.value.split(':').map(Number);S.want.push([tr,thr]);render()}
+  if(x.id==='addskill'&&x.value){const [tr,thr]=x.value.split(':').map(Number);
+    // stessa abilita' con un altro punteggio (es. Attacco su (M) e (L)): la nuova sostituisce la vecchia
+    const i=S.want.findIndex(w=>w[0]===tr);if(i>=0)S.want[i]=[tr,thr];else S.want.push([tr,thr]);render()}
   else if(['tk1','tk2'].includes(x.id)){S[x.id]=+x.value;render()}
   else if(['tp1','tp2'].includes(x.id)){S[x.id]=+x.value||0;save()}
   else if(x.id==='onlyown'){S.onlyOwn=x.checked;save()}
