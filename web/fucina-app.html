@@ -1,0 +1,111 @@
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:8px">
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <h1 id="h1" data-t="title_fucina">Fucina di Tri</h1>
+      <select id="lang" class="langsel"></select>
+    </div>
+    <p class="lede" id="lede"></p>
+    <p class="note" id="fallback" hidden></p>
+    <p class="note"><a href="__ALBERO_URL__" data-t="link_albero"></a></p>
+  </header>
+
+  <div class="bar">
+    <div class="seg" role="group" data-ta="mode">
+      <button data-mode="once" data-t="mode_once"></button>
+      <button data-mode="coll" data-t="mode_coll"></button>
+      <button data-mode="lev" data-t="mode_lev"></button>
+    </div>
+    <input id="q" type="search" data-tp="search_m">
+    <select id="jump"></select>
+    <p class="note" id="help" style="flex-basis:100%"></p>
+  </div>
+
+  <section style="display:flex;flex-direction:column;gap:10px">
+    <h2 data-t="summary"></h2>
+    <div class="panel scroll"><table id="sum"></table></div>
+  </section>
+  <section id="mons" style="display:flex;flex-direction:column;gap:14px"></section>
+  <section class="panel">
+    <div class="monh"><h2 data-t="g_gen"></h2><span class="note" data-t="g_gen_note"></span></div>
+    <table id="gen"></table>
+  </section>
+  <section class="panel">
+    <div class="monh"><h2 data-t="g_coin"></h2><span class="note" data-t="g_coin_note"></span></div>
+    <table id="coin"></table>
+  </section>
+  <footer class="note" style="display:flex;flex-direction:column;gap:6px">
+    <p data-t="f_once"></p><p data-t="f_coll"></p><p data-t="foot_lev"></p><p data-t="foot_shop"></p><p data-t="foot_rank"></p>
+    <p data-t="disclaimer"></p>__SOURCE__
+  </footer>
+</div>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+const D=JSON.parse(document.getElementById('data').textContent);
+__I18N__
+const W={};D.w.forEach(w=>W[w.id]=w);
+const IT=D.items, MONS=D.mons, KINDS=D.kinds.map(k=>k[0]);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const KN=k=>t('kinds')[k];
+const sumC=(a,b)=>{const o=Object.assign({},a);for(const [i,n] of Object.entries(b||{}))o[i]=(o[i]||0)+n;return o};
+const U=c=>Object.values(c||{}).reduce((a,n)=>a+n,0);
+function paths(id){const w=W[id],o=[];
+  if(w.buy)o.push({});if(w.cr)o.push(w.cr);
+  if(w.up)for(const p of w.p)o.push(sumC(fresh(p),w.up));return o}
+const FR={};const fresh=id=>(FR[id]=FR[id]||paths(id).sort((a,b)=>U(a)-U(b))[0]);
+function step(w){if(w.buy)return [{},'buy'];const o=[];if(w.cr)o.push([w.cr,Object.keys(w.cr).length?'create':'other']);if(w.up)o.push([w.up,'up']);o.sort((a,b)=>U(a[0])-U(b[0]));return o[0]||[{},'other']}
+// per ogni modo: materiale -> {tot, uses:[[arma, n, come]]}
+const MODES={};
+for(const mode of ['once','coll','lev']){
+  const M={};const put=(i,n,w,h)=>{M[i]=M[i]||{tot:0,uses:[]};M[i].tot+=n;M[i].uses.push([w,n,h])};
+  for(const w of D.w){
+    if(mode==='once'){const [c,h]=step(w);for(const [i,n] of Object.entries(c))put(i,n,w,h)}
+    else if(mode==='coll'){for(const [i,n] of Object.entries(fresh(w.id)))put(i,n,w,'coll')}
+    else if(w.lv){w.lv.forEach((c,L)=>{for(const [i,n] of Object.entries(c))put(i,n,w,'lv'+(L+2))})}
+  }
+  MODES[mode]=M;
+}
+let mode='once',q='';
+try{mode=localStorage.getItem('fucina-mode')||'once';if(!MODES[mode])mode='once'}catch(e){}
+const slug=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+const match=(i,r)=>!q||(Object.values(IT[i].n).join(' ')+' '+r.uses.map(u=>Object.values(u[0].n).join(' ')).join(' ')).toLowerCase().includes(q);
+const HOW={create:()=>t('how_create'),up:()=>t('how_up'),buy:()=>t('how_buy'),other:()=>t('how_other'),coll:()=>t('how_coll')};
+function rows(list){
+  const L=list.filter(([i,r])=>match(i,r)).sort((a,b)=>b[1].tot-a[1].tot);
+  if(!L.length) return `<p class="empty">${t('none_mode')}</p>`;
+  return '<table><tbody>'+L.map(([i,r])=>{
+    const lst=r.uses.map(([w,n,h])=>`<li><b>${esc(nm(w))}</b> · ${KN(w.k)} · ${h.startsWith('lv')?t('lv')+h.slice(2):HOW[h]()} ×${n}</li>`).join('');
+    const sub=nm2(IT[i]);
+    return `<tr><td><details><summary class="mat"><span>${esc(nm(IT[i]))} <span class="note">▾ ${t('recipes',{n:r.uses.length})}</span></span>${sub?`<small class="note">${esc(sub)}</small>`:''}</summary><ul class="pm">${lst}</ul></details></td><td class="n">${r.tot}</td></tr>`}).join('')+'</tbody></table>';
+}
+function render(){
+  applyStatic();
+  const cnt={};D.w.forEach(w=>cnt[w.k]=(cnt[w.k]||0)+1);
+  $('lede').textContent=t('lede_fucina',{n:KINDS.map(k=>cnt[k]+' '+t('kinds_pl')[k]).join(', ')});
+  document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===mode));
+  $('help').textContent=t('help_'+mode);
+  const M=MODES[mode];
+  const by={};
+  for(const [i,r] of Object.entries(M)){const m=IT[i];if(m.g!=='m')continue;by[m.mon]=by[m.mon]||{LR:[],HR:[]};by[m.mon][m.r].push([i,r])}
+  const s=L=>L.reduce((a,[i,r])=>a+(match(i,r)?r.tot:0),0);
+  const present=MONS.filter(m=>by[m]);
+  const mx=Math.max(1,...present.map(m=>Math.max(s(by[m].LR),s(by[m].HR))));
+  $('sum').innerHTML=`<thead><tr><th>${t('monster')}</th><th class="n">LR</th><th class="n">HR</th><th class="n">${t('total')}</th></tr></thead><tbody>`+
+    present.map(m=>{const a=s(by[m].LR),b=s(by[m].HR);return `<tr data-go="${slug(m)}" style="cursor:pointer"><td><b>${esc(monName(m))}</b></td><td class="n">${a}<span class="hbar lr" style="width:${Math.round(a/mx*60)}px"></span></td><td class="n">${b}<span class="hbar hr" style="width:${Math.round(b/mx*60)}px"></span></td><td class="n">${a+b}</td></tr>`}).join('')+'</tbody>';
+  $('mons').innerHTML=present.map(m=>`<article class="panel mon" id="${slug(m)}"><div class="monh"><h2>${esc(monName(m))}</h2><span class="n">LR ${s(by[m].LR)} · HR ${s(by[m].HR)}</span></div>
+    <div class="cols"><div><span class="pill lr">${t('lr')}</span>${rows(by[m].LR)}</div><div><span class="pill hr">${t('hr')}</span>${rows(by[m].HR)}</div></div></article>`).join('');
+  const other=g=>Object.entries(M).filter(([i,r])=>IT[i].g===g&&match(i,r)).sort((a,b)=>b[1].tot-a[1].tot);
+  $('gen').innerHTML=`<thead><tr><th>${t('material')}</th><th>${t('rank')}</th><th class="n">${t('qty')}</th></tr></thead><tbody>`+other('gen').map(([i,r])=>`<tr><td>${esc(nm(IT[i]))} <span class="note">${esc(nm2(IT[i]))}</span></td><td><span class="pill ${IT[i].r.toLowerCase()}">${IT[i].r}</span></td><td class="n">${r.tot}</td></tr>`).join('')+'</tbody>';
+  const c=other('coin');
+  $('coin').innerHTML=`<thead><tr><th>${t('coin')}</th><th class="n">${t('qty')}</th></tr></thead><tbody>`+(c.length?c.map(([i,r])=>`<tr><td>${esc(nm(IT[i]))} <span class="note">${esc(nm2(IT[i]))}</span></td><td class="n">${r.tot}</td></tr>`).join(''):`<tr><td class="empty">${t('none_mode')}</td><td></td></tr>`)+'</tbody>';
+  $('jump').innerHTML=`<option value="">${t('jump')}</option>`+present.map(m=>`<option value="${slug(m)}">${esc(monName(m))}</option>`).join('');
+  $('jump').setAttribute('aria-label',t('jump'));
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(b){mode=b.dataset.mode;try{localStorage.setItem('fucina-mode',mode)}catch(x){}render()}
+  const tr=e.target.closest('tr[data-go]');if(tr)$(tr.dataset.go).scrollIntoView({behavior:'smooth'})});
+$('q').addEventListener('input',e=>{q=e.target.value.trim().toLowerCase();render()});
+$('jump').addEventListener('change',e=>{if(e.target.value)$(e.target.value).scrollIntoView();e.target.value=''});
+langSelect(render);
+render();
+</script>
