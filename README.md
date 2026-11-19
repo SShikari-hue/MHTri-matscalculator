@@ -5,7 +5,7 @@ Sito per pianificare armi e armature di **Monster Hunter Tri** (Wii, versione PA
 **Sito:** https://sshikari-hue.github.io/MHTri-matscalculator/
 
 - **Albero armi** (`docs/index.html`): le 378 armi del gioco divise per tipo. Spunti quelle che hai e vedi i materiali che mancano, per mostro, LR/HR e tipo d'arma, con il percorso più breve per ogni arma.
-- **Fucina** (`docs/fucina.html`): il riepilogo dei materiali per mostro, senza spunte.
+- **Riepilogo** (`docs/fucina.html`): per ogni mostro, i materiali che servono per tutte le armi e tutte le armature. Le colonne sono Armi, Armature e Totale, ciascuna divisa in LR, HR e LR+HR. Il dettaglio è materiale per materiale, senza spunte.
 - **Armature** (`docs/armature.html`): i 144 set di armatura (628 pezzi), divisi tra spadaccino e artigliere e tra LR e HR. Spunti i pezzi che hai e vedi i materiali mancanti per mostro e per parte. Per ogni set mostra difesa, spazi, rarità e abilità.
 
 Lingue: italiano, inglese, spagnolo, francese e tedesco, con i nomi ufficiali della versione europea.
